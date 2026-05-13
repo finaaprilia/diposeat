@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | DIPOSEAT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --bg-soft: #F8F9FA;
+            --primary-pastel: #D4E2D4;
+            /* Hijau Pastel Utama */
+            --accent-blue: #D4F1F4;
+            --text-dark: #2D3436;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-soft);
+            padding: 40px 20px;
+            color: var(--text-dark);
+        }
+
+        .settings-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Navigation */
+        .btn-back {
+            text-decoration: none;
+            color: #A0AEC0;
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: inline-block;
+            transition: 0.3s;
+        }
+
+        .btn-back:hover {
+            color: var(--text-dark);
+        }
+
+        .header-title {
+            font-weight: 800;
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            letter-spacing: -1px;
+        }
+
+        .header-sub {
+            color: #718096;
+            margin-bottom: 40px;
+        }
+
+        /* Main Card */
+        .settings-card {
+            background: white;
+            border-radius: 28px;
+            padding: 45px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.02);
+            margin-bottom: 35px;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+
+        .section-label {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 35px;
+            display: flex;
+            align-items: center;
+            color: #2D3436;
+            /* Gold subtle */
+        }
+
+        .section-label i {
+            color: inherit;
+            margin-right: 12px;
+        }
+
+        /* Profile/Avatar */
+        .avatar-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 45px;
+        }
+
+        .avatar-main {
+            width: 110px;
+            height: 110px;
+            background: linear-gradient(135deg, #D4E2D4 0%, #B9D1B9 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            cursor: pointer;
+            position: relative;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 5px solid white;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .avatar-main:hover {
+            transform: rotate(5deg) scale(1.05);
+        }
+
+        .avatar-main img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .cam-badge {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: white;
+            color: var(--text-dark);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Inputs */
+        .input-group-custom {
+            margin-bottom: 25px;
+        }
+
+        .label-modern {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #4A5568;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .form-control-custom {
+            width: 100%;
+            border: 2px solid #EDF2F7;
+            background: #F8FAFC;
+            border-radius: 16px;
+            padding: 16px 22px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .form-control-custom:focus {
+            outline: none;
+            border-color: var(--primary-pastel);
+            background: white;
+            box-shadow: 0 8px 20px rgba(212, 226, 212, 0.15);
+        }
+
+        /* Button Pastel */
+        .btn-save-pastel {
+            background-color: var(--primary-pastel);
+            color: #4A5568;
+            border: none;
+            padding: 18px;
+            border-radius: 18px;
+            width: 100%;
+            font-weight: 800;
+            font-size: 1rem;
+            transition: 0.3s;
+            margin-top: 15px;
+            box-shadow: 0 10px 20px rgba(212, 226, 212, 0.3);
+        }
+
+        .btn-save-pastel:hover {
+            background-color: #C3D3C3;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(212, 226, 212, 0.4);
+        }
+
+        /* Info Restoran Area */
+        .info-card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            padding: 25px;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            border: 1px solid rgba(0, 0, 0, 0.02);
+        }
+
+        .icon-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 1.4rem;
+        }
+
+        .bg-mint {
+            background: #E6FFFA;
+            color: #319795;
+        }
+
+        .bg-blue {
+            background: #EBF8FF;
+            color: #3182CE;
+        }
+
+        .info-content h6 {
+            font-weight: 700;
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+
+        .info-content p {
+            font-size: 0.8rem;
+            color: #718096;
+            margin: 0;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="settings-container">
+        <div class="mb-4">
+            <a href="/admin" class="btn-back">Back</a>
+            <h1 class="header-title">Konfigurasi Profil</h1>
+            <p class="header-sub">Atur identitas admin untuk akses sistem DIPOSEAT</p>
+        </div>
+
+        <div class="settings-card">
+            <div class="section-label">
+                <i class="bi bi-person-circle me-2"></i> DATA PERSONAL ADMIN
+            </div>
+
+            <form action="/admin/update-settings" method="POST">
+                <div class="avatar-wrapper">
+                    <div class="avatar-main" onclick="document.getElementById('profileInput').click()">
+                        <span id="txtInitial">
+                            <%= (admin && admin.name) ? admin.name.charAt(0).toUpperCase() : 'A' %>
+                        </span>
+                        <img id="imgView" src="">
+                        <div class="cam-badge"><i class="bi bi-camera-fill"></i></div>
+                    </div>
+                    <input type="file" id="profileInput" hidden accept="image/*" onchange="previewImg(event)">
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="input-group-custom">
+                            <label class="label-modern">Nama Admin</label>
+                            <input type="text" name="name" class="form-control-custom"
+                                value="<%= admin && admin.name ? admin.name : '' %>" placeholder="Masukkan nama Anda">
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="input-group-custom">
+                            <label class="label-modern">Password</label>
+                            <div style="position: relative;">
+                                <input type="password" name="password" id="passField" class="form-control-custom"
+                                    placeholder="Kosongkan jika tidak ingin mengubah password">
+                                <i class="bi bi-eye"
+                                    style="position: absolute; right: 25px; top: 18px; color: #CBD5E0; cursor: pointer;"
+                                    onclick="viewPass()"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-save-pastel">Perbarui Profil</button>
+            </form>
+        </div>
+
+        <div class="info-card-grid">
+            <div class="info-card">
+                <div class="icon-circle bg-mint"><i class="bi bi-graph-up-arrow"></i></div>
+                <div class="info-content">
+                    <h6>Analitik Reservasi</h6>
+                    <p>Data reservasi diupdate secara real-time. Pantau jam sibuk restoran Anda melalui tabel management
+                        meja.</p>
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="icon-circle bg-blue"><i class="bi bi-shield-lock-fill"></i></div>
+                <div class="info-content">
+                    <h6>Keamanan Sesi</h6>
+                    <p>Sesi login admin dilindungi enkripsi. Pastikan logout setelah selesai menggunakan dashboard
+                        perangkat publik.</p>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex flex-column align-items-center w-100"
+            style="margin-top: 80px; margin-bottom: 20px; opacity: 0.6; text-align: center;">
+            <p class="small fw-bold m-0" style="color: #4A5568; letter-spacing: 0.5px;">
+                &copy; 2026 DIPOSEAT. All rights reserved.
+            </p>
+            <p class="small m-0" style="color: #718096; font-size: 0.75rem;">
+                Handcrafted with ❤️ by Computer Engineering Undip
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function previewImg(event) {
+            const reader = new FileReader();
+            const imgView = document.getElementById('imgView');
+            const txtInitial = document.getElementById('txtInitial');
+
+            reader.onload = function () {
+                if (reader.readyState === 2) {
+                    imgView.src = reader.result;
+                    imgView.style.display = "block";
+                    txtInitial.style.display = "none";
+                }
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function viewPass() {
+            const passField = document.getElementById('passField');
+            passField.type = passField.type === 'password' ? 'text' : 'password';
+        }
+    </script>
+
+</body>
+
+</html>

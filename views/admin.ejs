@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIPOSEAT | Admin Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            /* Palet Warna Pastel */
+            --primary: #6367FF;
+            --secondary: #8494FF;
+            --pastel-blue: #C9BEFF;
+            --pastel-pink: #FFDBFD;
+
+            --bg-main: #F4F7FE;
+            --white: #FFFFFF;
+            --text-main: #1B2559;
+            --text-muted: #A3AED0;
+            --success: #01B574;
+            --danger: #EE5D50;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        /* --- NAVBAR --- */
+        .navbar-top {
+            background: var(--white);
+            padding: 15px 40px;
+            box-shadow: 0 4px 12px rgba(99, 103, 255, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .brand-title {
+            font-weight: 800;
+            font-size: 1.6rem;
+            margin: 0;
+            color: var(--primary);
+            letter-spacing: -1px;
+        }
+
+        /* --- TAB NAVIGATION --- */
+        .nav-tabs-custom {
+            display: flex;
+            gap: 8px;
+            background: #F4F7FE;
+            padding: 6px;
+            border-radius: 16px;
+        }
+
+        .tab-link {
+            border: none;
+            padding: 10px 22px;
+            border-radius: 12px;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .tab-link.active {
+            background: var(--white);
+            color: var(--primary);
+            box-shadow: 0 4px 12px rgba(99, 103, 255, 0.1);
+        }
+
+        /* --- PROFILE --- */
+        .profile-wrapper {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--pastel-pink);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        /* --- CONTENT WRAPPER --- */
+        .main-wrapper {
+            max-width: 1300px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 35px;
+        }
+
+        .btn-add-table {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 16px;
+            font-weight: 700;
+            transition: 0.3s;
+        }
+
+        .btn-add-table:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 103, 255, 0.2);
+        }
+
+        /* --- CARDS & TABLES --- */
+        .data-card {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 24px;
+            border: 1px solid rgba(201, 190, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+        }
+
+        .data-header {
+            display: grid;
+            /* Diubah menjadi 6 kolom: No, Kapasitas, Status, Pelanggan, Kontak, Aksi */
+            grid-template-columns: 0.6fr 1fr 1fr 1.5fr 1.2fr 1.2fr;
+            padding: 0 20px 15px 20px;
+            border-bottom: 1px solid #F4F7FE;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .data-row {
+            display: grid;
+            /* Harus sama persis dengan header: 6 kolom */
+            grid-template-columns: 0.6fr 1fr 1fr 1.5fr 1.2fr 1.2fr;
+            padding: 20px;
+            align-items: center;
+            border-bottom: 1px solid #F4F7FE;
+            transition: 0.3s;
+        }
+
+        .data-row:hover {
+            background: rgba(201, 190, 255, 0.05);
+            border-radius: 16px;
+        }
+
+        /* --- PILLS & BUTTONS --- */
+        .status-pill {
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
+
+        .available {
+            background: #E6FFFA;
+            color: var(--success);
+        }
+
+        .occupied {
+            background: var(--pastel-pink);
+            color: var(--primary);
+        }
+
+        .btn-action {
+            background: var(--bg-main);
+            color: var(--primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+
+        .btn-action:hover {
+            background: var(--pastel-blue);
+            color: white;
+        }
+
+        .btn-reset {
+            color: var(--danger);
+        }
+
+        .btn-reset:hover {
+            background: #FFF5F5;
+            color: var(--danger);
+        }
+
+        .btn-delete {
+            background: #FFF5F4;
+            color: #EE5D50;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-delete:hover {
+            background: #EE5D50;
+            color: white;
+        }
+
+        /* --- MODAL --- */
+        .modal-content {
+            border-radius: 24px;
+            border: none;
+            padding: 15px;
+        }
+
+        .form-control {
+            border-radius: 12px;
+            padding: 12px;
+            background: #F4F7FE;
+            border: none;
+        }
+
+        .form-control:focus {
+            background: white;
+            border: 1px solid var(--pastel-blue);
+            box-shadow: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar-top">
+        <div class="nav-container">
+            <h2 class="brand-title">DIPOSEAT</h2>
+
+            <div class="nav-tabs-custom">
+                <button class="tab-link active" onclick="switchTab('meja', this)">Semua Meja</button>
+                <button class="tab-link" onclick="switchTab('available', this)">Tersedia</button>
+                <button class="tab-link" onclick="switchTab('occupied', this)">Terisi</button>
+                <button class="tab-link" onclick="switchTab('jadwal', this)">
+                    <i class="bi bi-calendar3 me-1"></i> Jadwal
+                </button>
+            </div>
+
+            <div class="dropdown">
+                <div class="profile-wrapper" data-bs-toggle="dropdown">
+                    <%= (typeof admin !=='undefined' && admin.name) ? admin.name.charAt(0).toUpperCase() : 'A' %>
+                </div>
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2" style="border-radius: 18px;">
+                    <li><a class="dropdown-item rounded-3 py-2" href="/admin/settings"><i class="bi bi-gear me-2"></i>
+                            Settings</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item rounded-3 py-2 text-danger" href="/logout"><i
+                                class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        <div id="view-meja">
+            <div class="header-content d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 style="font-weight: 800; font-size: 1.8rem; margin: 0;">Manajemen Meja</h1>
+                    <p style="color: var(--text-muted); margin: 5px 0 0 0;">Kelola reservasi Diposeat.</p>
+                </div>
+
+                <div id="wrapper-btn-tambah">
+                    <button class="btn-add-table" onclick="openAddTableModal()"
+                        style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 700;">
+                        <i class="bi bi-plus-lg me-1"></i> Tambah Meja
+                    </button>
+                </div>
+            </div>
+
+            <div class="data-card mt-4"
+                style="background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.02);">
+                <div class="data-header"
+                    style="display: grid; grid-template-columns: 0.5fr 1fr 1fr 1.5fr 1.5fr 2.5fr; padding: 0 20px 15px 20px; border-bottom: 1px solid #F4F7FE; color: var(--text-muted); font-weight: 700; font-size: 0.8rem; text-transform: uppercase;">
+                    <div>No</div>
+                    <div>Kapasitas</div>
+                    <div>Status</div>
+                    <div>Pelanggan</div>
+                    <div>Kontak</div>
+                    <div class="text-end">Aksi</div>
+                </div>
+
+                <% if (tables && tables.length> 0) { %>
+                    <% tables.forEach(table=> { %>
+                        <div class="data-row table-item"
+                            style="display: grid; grid-template-columns: 0.5fr 1fr 1fr 1.5fr 1.5fr 2.5fr; padding: 20px; align-items: center; border-bottom: 1px solid #F4F7FE;"
+                            data-status="<%= table.status.toLowerCase() %>">
+
+                            <div class="fw-bold">#<%= table.table_number %>
+                            </div>
+
+                            <div class="text-muted">
+                                <%= table.capacity %> Kursi
+                            </div>
+
+                            <div>
+                                <span class="status-pill <%= table.status === 'available' ? 'available' : 'occupied' %>"
+                                    style="padding: 6px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 700;">
+                                    <%= table.status==='available' ? 'Tersedia' : 'Terisi' %>
+                                </span>
+                            </div>
+
+                            <div class="small fw-bold text-truncate" style="max-width: 150px;">
+                                <%= table.status==='available' ? '-' : (table.reserved_by || '-' ) %>
+                            </div>
+
+                            <div class="text-muted small">
+                                <%= table.status==='available' ? '-' : (table.phone || '-' ) %>
+                            </div>
+
+                            <div class="text-end">
+                                <div class="d-flex gap-2 justify-content-end align-items-center"
+                                    style="position: relative; z-index: 10;">
+
+                                    <button class="btn-action"
+                                        onclick="openEditModal('<%= table.id %>', '<%= table.table_number %>', '<%= table.reserved_by %>', '<%= table.phone %>', '<%= table.reservation_date %>', '<%= table.reservation_time %>')"
+                                        style="padding: 6px 12px; font-size: 0.8rem;">
+                                        Edit
+                                    </button>
+
+                                    <% if (table.status !=='available' ) { %>
+                                        <button class="btn-action" onclick="unbookMeja('<%= table.id %>')"
+                                            style="padding: 6px 12px; font-size: 0.8rem; background: #FFF5F4; color: #E53E3E; border: 1px solid #FED7D7;">
+                                            Unbook
+                                        </button>
+                                        <% } %>
+                                            <button class="btn btn-sm btn-light-danger"
+                                                onclick="openDeleteModal('<%= table.id %>', '<%= table.table_number %>')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                </div>
+                            </div>
+                        </div>
+                        <% }) %>
+                            <% } else { %>
+                                <div class="p-5 text-center text-muted">
+                                    <i class="bi bi-inboxes d-block mb-2"
+                                        style="font-size: 2.5rem; color: var(--text-muted);"></i>
+                                    <div class="fw-bold">Belum ada data meja</div>
+                                </div>
+                                <% } %>
+            </div>
+        </div>
+        <div id="view-jadwal" style="display: none;">
+            <div class="mb-4">
+                <h1 style="font-weight: 800; font-size: 1.8rem; margin: 0;">Jadwal Reservasi</h1>
+                <p style="color: var(--text-muted); margin: 5px 0 0 0;">Daftar tamu yang sedang menggunakan meja.</p>
+            </div>
+
+            <div class="data-card mt-4"
+                style="background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.02);">
+                <div class="data-header"
+                    style="display: grid; grid-template-columns: 1.5fr 1fr 1.5fr 1fr; padding: 0 20px 15px 20px;">
+                    <div>Tanggal / Jam</div>
+                    <div>Meja</div>
+                    <div>Pelanggan</div>
+                    <div class="text-end">Kontak</div>
+                </div>
+
+                <% if (reservations && reservations.length> 0) { %>
+                    <% reservations.forEach(res=> { %>
+                        <div class="data-row"
+                            style="display: grid; grid-template-columns: 1.5fr 1fr 1.5fr 1fr; padding: 20px; align-items: center;">
+                            <div>
+                                <div class="fw-bold">
+                                    <%= res.date ? new Date(res.date).toLocaleDateString('id-ID') : '-' %>
+                                </div>
+                                <div class="small text-primary fw-bold">
+                                    <%= res.time || '-' %>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="badge bg-light text-dark" style="padding: 8px 12px; border-radius: 8px;">
+                                    #<%= res.table_number %>
+                                </span>
+                            </div>
+                            <div class="fw-bold text-truncate">
+                                <%= res.customer_name %>
+                            </div>
+                            <div class="text-end text-muted small">
+                                <%= res.phone || '-' %>
+                            </div>
+                        </div>
+                        <% }) %>
+                            <% } else { %>
+                                <div class="p-5 text-center text-muted">
+                                    <i class="bi bi-calendar-x d-block mb-2"
+                                        style="font-size: 2.5rem; color: var(--text-muted);"></i>
+                                    <div class="fw-bold">Belum ada data reservasi</div>
+                                    <div class="small">Data akan muncul di sini setelah meja di-update.</div>
+                                </div>
+                                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEdit" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="fw-800" style="color: var(--primary)">Update Meja #<span id="modalTableNum"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form onsubmit="event.preventDefault(); saveEditChanges();">
+                    <div class="modal-body">
+                        <input type="hidden" name="tableId" id="editTableId">
+
+                        <div class="mb-3">
+                            <label class="small fw-bold text-muted mb-2">Nama Pelanggan</label>
+                            <input type="text" name="reserved_by" id="editCustomerName" class="form-control"
+                                placeholder="Masukkan nama tamu..." required
+                                style="border-radius: 12px; padding: 12px; background: #F8F9FA;">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small fw-bold text-muted mb-2">Nomor HP</label>
+                            <input type="text" name="phone" id="editPhone" class="form-control shadow-none"
+                                placeholder="0812..." required
+                                style="border-radius: 12px; padding: 12px; background: #F8F9FA;">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Tanggal</label>
+                                <input type="date" id="editDate" name="reservation_date" class="form-control">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Jam</label>
+                                <input type="time" id="editTime" name="reservation_time" class="form-control">
+                            </div>
+                        </div>
+
+                        <button type="button" onclick="saveEditChanges()" class="btn w-100"
+                            style="background: var(--primary); color:white; border-radius:12px; font-weight:700; padding:12px;">
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAddTable" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 20px; border: none;">
+                <div class="modal-header border-0 pt-4 px-4">
+                    <h5 class="fw-800" style="color: var(--primary); margin: 0;">Tambah Meja Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/admin/add-table" method="POST">
+                    <div class="modal-body px-4">
+                        <div class="mb-3">
+                            <label class="small fw-bold text-muted mb-2">Nomor Meja</label>
+                            <input type="text" name="tableNumber" class="form-control" placeholder="Contoh: M05"
+                                required style="border-radius: 12px; padding: 12px; background: #F8F9FA;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="small fw-bold text-muted mb-2">Kapasitas (Kursi)</label>
+                            <input type="number" name="capacity" class="form-control" placeholder="Contoh: 4" required
+                                style="border-radius: 12px; padding: 12px; background: #F8F9FA;">
+                        </div>
+                        <button type="submit" class="btn w-100 mt-3"
+                            style="background: var(--primary); color: white; border-radius: 12px; font-weight: 700; padding: 12px;">
+                            Tambahkan Meja
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function switchTab(type, element) {
+            // 1. Kelola status aktif pada tombol tab
+            document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+
+            const viewMeja = document.getElementById('view-meja');
+            const viewJadwal = document.getElementById('view-jadwal');
+            const items = document.querySelectorAll('.table-item');
+            const btnTambah = document.getElementById('wrapper-btn-tambah');
+
+            if (type === 'jadwal') {
+                viewMeja.style.display = 'none';
+                viewJadwal.style.display = 'block';
+                if (btnTambah) btnTambah.style.display = 'none';
+            } else {
+                // Tampilkan kontainer meja
+                viewMeja.style.display = 'block';
+                viewJadwal.style.display = 'none';
+
+                // Logika Tombol Tambah (Muncul jika di tab Meja atau Semua)
+                if (btnTambah) {
+                    btnTambah.style.display = (type === 'meja' || type === 'all') ? 'block' : 'none';
+                }
+
+                // --- PERBAIKAN LOGIKA FILTER DI SINI ---
+                items.forEach(item => {
+                    const status = item.getAttribute('data-status');
+
+                    // Jika pilih 'all' atau 'meja' (Semua Meja), tampilkan SEMUA baris
+                    if (type === 'all' || type === 'meja') {
+                        item.style.setProperty('display', 'grid', 'important');
+                    }
+                    // Jika pilih filter spesifik (tersedia/terisi)
+                    else if (status === type) {
+                        item.style.setProperty('display', 'grid', 'important');
+                    }
+                    // Sembunyikan yang tidak sesuai filter
+                    else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        // 2. Fungsi Edit Modal
+        // Tambahkan parameter date dan time
+        function openEditModal(id, num, reservedBy, phone, date, time) {
+            const inputId = document.getElementById('editTableId');
+            const labelNum = document.getElementById('modalTableNum');
+            const inputName = document.getElementById('editCustomerName');
+            const inputPhone = document.getElementById('editPhone');
+            const inputDate = document.getElementById('editDate');
+            const inputTime = document.getElementById('editTime');
+
+            if (inputId) inputId.value = id;
+            if (labelNum) labelNum.innerText = num;
+
+            // Isi data pelanggan & waktu
+            if (inputName) inputName.value = (reservedBy && reservedBy !== 'null') ? reservedBy : '';
+            if (inputPhone) inputPhone.value = (phone && phone !== 'null') ? phone : '';
+            if (inputDate) inputDate.value = (date && date !== 'null') ? date : '';
+            if (inputTime) inputTime.value = (time && time !== 'null') ? time : '';
+
+            const editModal = new bootstrap.Modal(document.getElementById('modalEdit'));
+            editModal.show();
+        }
+
+        // Tambahkan fungsi ini untuk menangani simpan perubahan edit
+        async function saveEditChanges() {
+            const id = document.getElementById('editTableId').value;
+
+            const data = {
+                reserved_by: document.getElementById('editCustomerName').value,
+                phone: document.getElementById('editPhone').value,
+                reservation_date: document.getElementById('editDate').value,
+                reservation_time: document.getElementById('editTime').value
+            };
+
+            try {
+                const response = await fetch(`/admin/update-table/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    Swal.fire({ icon: 'success', title: 'Berhasil!', timer: 1500, showConfirmButton: false })
+                        .then(() => window.location.reload());
+                } else {
+                    const errorMsg = await response.text();
+                    Swal.fire('Gagal', 'Pesan Error: ' + errorMsg, 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Gagal hubung ke server', 'error');
+            }
+        }
+
+        // 3. Fungsi Unbook (Pake SweetAlert2)
+        async function unbookMeja(id) {
+            const result = await Swal.fire({
+                title: 'Kosongkan Meja?',
+                text: "Status meja akan kembali 'Tersedia' dan data pelanggan akan dihapus permanen.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#E53E3E', // Warna merah (danger)
+                cancelButtonColor: '#CBD5E0',
+                confirmButtonText: 'Ya, Kosongkan!',
+                cancelButtonText: 'Batal'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/unbook-table/${id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                            // Tambahkan CSRF token jika Laravel kamu mewajibkannya
+                        }
+                    });
+
+                    if (response.ok) {
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: 'Meja kini telah kosong.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.reload(); // Refresh untuk melihat tanda '-' di tabel
+                        });
+                    } else {
+                        Swal.fire('Gagal', 'Terjadi kesalahan saat memproses data.', 'error');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire('Error', 'Tidak dapat terhubung ke server.', 'error');
+                }
+            }
+        }
+
+        // 5. Fungsi Delete
+        // 1. Variabel Global untuk nampung ID meja yang dipilih
+        let tableIdToDelete = null;
+
+        // 2. Fungsi untuk ngebuka modal dan ngeset data meja
+        function openDeleteModal(id, tableNumber) {
+            tableIdToDelete = id;
+            // Nampilin nomor meja di teks konfirmasi modal
+            document.getElementById('deleteTableName').innerText = 'Meja ' + tableNumber;
+
+            // Munculin modal Bootstrap
+            const modal = new bootstrap.Modal(document.getElementById('modalConfirmDelete'));
+            modal.show();
+        }
+
+        // 3. Nunggu semua elemen HTML kelar di-render (biar tombol ketemu)
+        document.addEventListener('DOMContentLoaded', function () {
+            const btnDelete = document.getElementById('btnConfirmDeleteAction');
+
+            if (btnDelete) {
+                btnDelete.onclick = async function () {
+                    if (!tableIdToDelete) {
+                        Swal.fire('Error', 'ID meja tidak ditemukan', 'error');
+                        return;
+                    }
+
+                    // 4. Pop-up Konfirmasi SweetAlert2
+                    Swal.fire({
+                        title: 'Beneran mau hapus?',
+                        text: "Data meja ini bakal ilang selamanya!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#E53E3E',
+                        cancelButtonColor: '#CBD5E0',
+                        confirmButtonText: 'Ya, Hapus!',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true
+                    }).then(async (result) => {
+                        // Kalau user klik tombol konfirmasi "Ya, Hapus!"
+                        if (result.isConfirmed) {
+                            try {
+                                // Kirim request ke backend (app.js)
+                                const response = await fetch(`/admin/delete-table/${tableIdToDelete}`, {
+                                    method: 'DELETE'
+                                });
+
+                                if (response.ok) {
+                                    // Notifikasi sukses sebelum reload
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Terhapus!',
+                                        text: 'Meja berhasil dimusnahkan.',
+                                        showConfirmButton: false,
+                                        timer: 1500
+                                    }).then(() => {
+                                        window.location.reload(); // Refresh halaman
+                                    });
+                                } else {
+                                    const errorMsg = await response.text();
+                                    Swal.fire('Gagal', 'Error: ' + errorMsg, 'error');
+                                }
+                            } catch (err) {
+                                console.error("Fetch Error:", err);
+                                Swal.fire('Error', 'Gagal menghubungi server', 'error');
+                            }
+                        }
+                    });
+                };
+            }
+        });
+
+        function openAddTableModal() {
+            const modalAdd = document.getElementById('modalAddTable');
+            if (modalAdd) {
+                const addModal = new bootstrap.Modal(modalAdd);
+                addModal.show();
+            }
+        }
+    </script>
+
+    <div class="modal fade" id="modalConfirmDelete" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+            <div class="modal-content text-center p-4" style="border-radius: 24px;">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <i class="bi bi-exclamation-octagon" style="font-size: 3rem; color: var(--danger);"></i>
+                    </div>
+                    <h5 class="fw-800 mb-2">Hapus Meja?</h5>
+                    <p class="text-muted small">Apakah Anda yakin ingin menghapus <span id="deleteTableName"
+                            class="fw-bold text-dark"></span>? Tindakan ini tidak bisa dibatalkan.</p>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" class="btn w-100" data-bs-dismiss="modal"
+                            style="background: var(--bg-main); color: var(--text-main); border-radius: 12px; font-weight: 700; padding: 12px;">
+                            Batal
+                        </button>
+                        <button type="button" id="btnConfirmDeleteAction" class="btn w-100"
+                            style="background: var(--danger); color: white; border-radius: 12px; font-weight: 700; padding: 12px;">
+                            Ya, Hapus
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
