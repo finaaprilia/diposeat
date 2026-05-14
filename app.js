@@ -31,7 +31,8 @@ app.get('/', async (req, res) => {
         const result = await pool.query('SELECT * FROM tables ORDER BY table_number ASC');
         res.render('index', {
             tables: result.rows,
-            user: req.session.user || null
+            // Mengirim data session user atau admin agar navbar bisa adaptif
+            user: req.session.user || req.session.admin || null
         });
     } catch (err) {
         console.error(err);
@@ -46,30 +47,60 @@ app.get('/login', (req, res) => {
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
-        const result = await pool.query('SELECT * FROM admins WHERE username = $1', [username]);
+        // 1. Cari di tabel 'users' (Sekarang admin & user masuk sini semua)
+        const result = await pool.query('SELECT * FROM users WHERE username = $1 OR email = $1', [username]);
+
         if (result.rows.length > 0) {
-            const admin = result.rows[0];
-            const match = await bcrypt.compare(password, admin.password);
+            const user = result.rows[0];
+            const match = await bcrypt.compare(password, user.password);
+
             if (match) {
-                req.session.admin = {
-                    id: admin.id,
-                    name: admin.name,
-                    username: admin.username
-                };
-                return res.redirect('/admin');
+                // 2. CEK ROLE-NYA DI SINI
+                if (user.role === 'admin') {
+                    // Kalau role-nya admin, kasih session admin
+                    req.session.admin = { id: user.id, username: user.username };
+                    return res.redirect('/admin'); // Dilempar ke dashboard admin
+                } else {
+                    // Kalau role-nya user, kasih session user
+                    req.session.user = { id: user.id, username: user.username };
+                    return res.redirect('/'); // Dilempar ke landing page (index)
+                }
             }
         }
-        req.flash('error', 'Username atau Password salah!');
+
+        req.flash('error', 'Username/Email atau Password salah!');
         res.redirect('/login');
     } catch (err) {
         console.error(err);
-        res.status(500).send("Terjadi kesalahan pada server");
+        res.status(500).send("Server Error");
+    }
+});
+
+// ROUTE KHUSUS USER UNTUK BOOKING
+app.post('/user/book-table/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reserved_by, phone, reservation_date, reservation_time } = req.body;
+
+        await pool.query(
+            `UPDATE tables 
+             SET reserved_by = $1, phone = $2, res_date = $3, res_time = $4, status = 'occupied'
+             WHERE id = $5`,
+            [reserved_by, phone, reservation_date, reservation_time, id]
+        );
+        res.sendStatus(200);
+    } catch (err) {
+        console.error("USER BOOKING ERROR:", err.message);
+        res.status(500).send("Gagal booking");
     }
 });
 
 app.get('/logout', (req, res) => {
-    req.session.destroy(() => {
-        res.clearCookie('connect.sid');
+    req.session.destroy((err) => {
+        if (err) {
+            return res.redirect('/');
+        }
+        res.clearCookie('connect.sid'); // Nama cookie default express-session
         res.redirect('/');
     });
 });
@@ -188,29 +219,97 @@ app.get('/admin/settings', isAdmin, (req, res) => {
 
 app.post('/admin/update-settings', isAdmin, async (req, res) => {
     const { name, password } = req.body;
-    const adminId = req.user.id; // Ambil ID admin yang sedang login
+    const adminId = req.session.admin.id;
 
     try {
         if (password && password.trim() !== "") {
-            // KONDISI 1: User isi password baru (Ganti Nama + Password)
-            // Jangan lupa di-hash dulu password-nya kalau kamu pakai bcrypt
+            // KONDISI 1: Ganti Nama + Password (Password di-hash)
             const hashedPassword = await bcrypt.hash(password, 10);
             await pool.query(
-                'UPDATE users SET name = $1, password = $2 WHERE id = $3',
+                'UPDATE users SET username = $1, password = $2 WHERE id = $3',
                 [name, hashedPassword, adminId]
             );
         } else {
-            // KONDISI 2: Password kosong (Hanya Ganti Nama)
+            // KONDISI 2: Hanya Ganti Nama (PASTIKAN PAKE 'username', BUKAN 'name')
             await pool.query(
-                'UPDATE users SET name = $1 WHERE id = $2',
+                'UPDATE users SET username = $1 WHERE id = $2',
                 [name, adminId]
             );
         }
 
-        res.redirect('/admin/settings?success=true');
+        // UPDATE SESSION: Supaya nama di pojok kanan atas langsung berubah tanpa logout
+        req.session.admin.username = name;
+
+        req.flash('success', 'Profil admin berhasil diperbarui!');
+        res.redirect('/admin/settings');
+
+    } catch (err) {
+        console.error("Error Update Admin:", err.message);
+        res.status(500).send("Gagal memperbarui profil admin.");
+    }
+});
+
+app.get('/register', (req, res) => {
+    res.render('register');
+});
+
+app.post('/register', async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+
+        // Validasi input kosong
+        if (!username || !email || !password) {
+            req.flash('error', 'Semua kolom wajib diisi!');
+            return res.redirect('/register');
+        }
+
+        // LOGIC CEK EMAIL GANDA:
+        const checkEmail = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+
+        if (checkEmail.rows.length > 0) {
+            // Jika email sudah ada, kirim pesan error
+            req.flash('error', 'Email sudah terdaftar, gunakan email lain!');
+            return res.redirect('/register');
+        }
+
+        // Hash password sebelum simpan
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Simpan user baru (Role default 'user')
+        await pool.query(
+            'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
+            [username, email, hashedPassword, 'user']
+        );
+
+        req.flash('success', 'Registrasi berhasil! Silakan login.');
+        res.redirect('/login');
+
+    } catch (err) {
+        console.error("Error Regis:", err.message);
+        res.status(500).send("Gagal mendaftarkan akun.");
+    }
+});
+
+app.get('/my-reservations', async (req, res) => {
+    if (!req.session.user) {
+        req.flash('error', 'Silakan login dulu bos!');
+        return res.redirect('/login');
+    }
+
+    try {
+        const result = await pool.query(
+            "SELECT * FROM tables WHERE reserved_by = $1 AND status = 'occupied' ORDER BY res_date ASC",
+            [req.session.user.username]
+        );
+
+        // NAMA FILE HARUS SESUAI (Tanpa .ejs)
+        res.render('reservasi', {
+            user: req.session.user,
+            reservations: result.rows
+        });
     } catch (err) {
         console.error(err);
-        res.status(500).send("Gagal memperbarui profil");
+        res.status(500).send("Gagal muat data");
     }
 });
 

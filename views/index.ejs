@@ -164,6 +164,10 @@
             <span class="small text-muted">Halo, <b>
                     <%= user.username %>
                 </b></span>
+
+            <span class="mx-2 text-muted">|</span>
+            <a href="/my-reservations" class="text-primary small fw-bold text-decoration-none">Reservasi Saya</a>
+
             <span class="mx-2 text-muted">|</span>
             <a href="/logout" class="text-danger small fw-bold text-decoration-none">Logout</a>
         </div>
@@ -181,10 +185,11 @@
                     <div class="col-md-8">
                         <h2 class="fw-bold mb-3">Gak Cuma Sekedar Caffe ☕</h2>
                         <p class="text-muted mb-4">
-                            Third place paling asik buat nugas atau sekedar nongkrong. WiFi kenceng, ambience
-                            tenang, dan yang paling penting:
+                            Third place paling asik buat nugas atau sekedar nongkrong. WiFi kenceng, ambience tenang,
+                            dan yang paling penting:
                             <strong>Pesan meja duluan, nugas kemudian!</strong>
                         </p>
+
                         <% if (!user) { %>
                             <button data-bs-toggle="modal" data-bs-target="#authModal" class="btn-main shadow">Amankan
                                 Meja</button>
@@ -280,13 +285,12 @@
                             <div class="col-md-4 col-lg-3 mb-4">
                                 <div class="card h-100 shadow-sm card-meja">
                                     <div class="card-body p-4 text-center">
-                                        <% if (table.status==='Occupied' ) { %>
+                                        <% if (table.status==='occupied' ) { %>
                                             <span
                                                 class="status-badge d-inline-block mb-3 bg-secondary text-white">Terisi</span>
                                             <h5 class="fw-bold mb-2">Meja <%= table.table_number %>
                                             </h5>
-                                            <button onclick="unbookTable('<%= table.id %>')"
-                                                class="btn btn-outline-danger w-100 py-2">Kosongkan</button>
+                                            <button disabled class="btn btn-secondary w-100 py-2">Terisi</button>
                                             <% } else { %>
                                                 <span class="status-badge d-inline-block mb-3">Tersedia</span>
                                                 <h5 class="fw-bold mb-2">Meja <%= table.table_number %>
@@ -314,21 +318,22 @@
                     <div class="modal-content" style="border-radius: 30px; border: none;">
                         <div class="modal-body p-5">
                             <h3 class="fw-bold mb-4 text-center" id="authTitle">Login ke DIPOSEAT</h3>
-                            <form id="loginForm">
-                                <input type="email" id="logEmail" class="form-control mb-3" placeholder="Email"
-                                    required>
-                                <input type="password" id="logPass" class="form-control mb-3" placeholder="Password"
+
+                            <form id="loginForm" action="/login" method="POST">
+                                <input type="text" name="username" class="form-control mb-3"
+                                    placeholder="Username atau Email" required>
+                                <input type="password" name="password" class="form-control mb-3" placeholder="Password"
                                     required>
                                 <button type="submit" class="btn-main w-100 mb-3">Masuk</button>
                                 <p class="text-center small">Belum punya akun? <a href="#" onclick="toggleAuth()">Daftar
                                         di sini</a></p>
                             </form>
-                            <form id="regForm" style="display: none;">
-                                <input type="text" id="regUser" class="form-control mb-3" placeholder="Username"
+
+                            <form id="regForm" action="/register" method="POST" style="display: none;">
+                                <input type="text" name="username" class="form-control mb-3" placeholder="Username"
                                     required>
-                                <input type="email" id="regEmail" class="form-control mb-3" placeholder="Email"
-                                    required>
-                                <input type="password" id="regPass" class="form-control mb-3" placeholder="Password"
+                                <input type="email" name="email" class="form-control mb-3" placeholder="Email" required>
+                                <input type="password" name="password" class="form-control mb-3" placeholder="Password"
                                     required>
                                 <button type="submit" class="btn-main w-100 mb-3">Buat Akun</button>
                                 <p class="text-center small">Sudah punya akun? <a href="#" onclick="toggleAuth()">Login
@@ -398,71 +403,36 @@
                     }
                 }
 
-                document.getElementById('regForm').onsubmit = async (e) => {
-                    e.preventDefault();
-                    const data = {
-                        username: document.getElementById('regUser').value,
-                        email: document.getElementById('regEmail').value,
-                        password: document.getElementById('regPass').value
-                    };
-                    const res = await fetch('/register', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    });
-                    const result = await res.json();
-                    alert(result.message);
-                    if (result.success) toggleAuth();
-                };
-
-                document.getElementById('loginForm').onsubmit = async (e) => {
-                    e.preventDefault();
-                    const data = {
-                        email: document.getElementById('logEmail').value,
-                        password: document.getElementById('logPass').value
-                    };
-                    const res = await fetch('/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    });
-                    const result = await res.json();
-                    if (result.success) {
-                        location.reload();
-                    } else {
-                        alert(result.message);
-                    }
-                };
-
                 function openBookingModal(id, num) {
                     document.getElementById('tableId').value = id;
                     document.getElementById('modalTableNum').innerText = num;
                     new bootstrap.Modal(document.getElementById('bookingModal')).show();
                 }
 
+                // Logic Reservasi
                 document.getElementById('reservationForm').onsubmit = async (e) => {
                     e.preventDefault();
                     const tableId = document.getElementById('tableId').value;
                     const data = {
-                        name: document.getElementById('resName').value,
+                        reserved_by: document.getElementById('resName').value,
                         phone: document.getElementById('resPhone').value,
-                        date: document.getElementById('resDate').value,
-                        time: document.getElementById('resTime').value
+                        reservation_date: document.getElementById('resDate').value,
+                        reservation_time: document.getElementById('resTime').value
                     };
-                    const res = await fetch(`/book-table/${tableId}`, {
+
+                    const res = await fetch(`/user/book-table/${tableId}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(data)
                     });
-                    if (res.ok) location.reload();
-                };
 
-                async function unbookTable(id) {
-                    if (confirm('Yakin mau batalin meja ini?')) {
-                        const res = await fetch(`/unbook-table/${id}`, { method: 'POST' });
-                        if (res.ok) location.reload();
+                    if (res.ok) {
+                        alert('Reservasi Berhasil!');
+                        location.reload();
+                    } else {
+                        alert('Gagal melakukan reservasi.');
                     }
-                }
+                };
             </script>
 </body>
 
