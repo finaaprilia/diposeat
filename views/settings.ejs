@@ -258,7 +258,7 @@
                 <div class="avatar-wrapper">
                     <div class="avatar-main" onclick="document.getElementById('profileInput').click()">
                         <span id="txtInitial">
-                            <%= (admin && admin.name) ? admin.name.charAt(0).toUpperCase() : 'A' %>
+                            <%= (admin && admin.username) ? admin.username.charAt(0).toUpperCase() : 'A' %>
                         </span>
                         <img id="imgView" src="">
                         <div class="cam-badge"><i class="bi bi-camera-fill"></i></div>
@@ -271,7 +271,8 @@
                         <div class="input-group-custom">
                             <label class="label-modern">Nama Admin</label>
                             <input type="text" name="name" class="form-control-custom"
-                                value="<%= admin && admin.name ? admin.name : '' %>" placeholder="Masukkan nama Anda">
+                                value="<%= admin && admin.username ? admin.username : '' %>"
+                                placeholder="Masukkan nama Anda">
                         </div>
                     </div>
 

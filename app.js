@@ -96,12 +96,25 @@ app.post('/user/book-table/:id', async (req, res) => {
 });
 
 app.get('/logout', (req, res) => {
+    // 1. Simpan status admin di variabel sementara sebelum session dihapus
+    const logoutDariAdmin = req.session.admin ? true : false;
+
+    // 2. Hancurkan session
     req.session.destroy((err) => {
         if (err) {
+            console.error("Gagal logout:", err);
             return res.redirect('/');
         }
-        res.clearCookie('connect.sid'); // Nama cookie default express-session
-        res.redirect('/');
+
+        // 3. Hapus cookie session di browser
+        res.clearCookie('connect.sid');
+
+        // 4. Cek: Kalau tadi dia admin, balik ke /login. Kalau user, balik ke / (home)
+        if (logoutDariAdmin) {
+            res.redirect('/login');
+        } else {
+            res.redirect('/');
+        }
     });
 });
 
@@ -282,7 +295,7 @@ app.post('/register', async (req, res) => {
         );
 
         req.flash('success', 'Registrasi berhasil! Silakan login.');
-        res.redirect('/login');
+        res.redirect('/?auth=login'); // Lempar ke index dengan parameter auth
 
     } catch (err) {
         console.error("Error Regis:", err.message);
