@@ -159,7 +159,7 @@
     </style>
 </head>
 
-<body>
+<body data-user="<%= user ? 'true' : 'false' %>">
     <% if (user) { %>
         <div style="position: absolute; top: 20px; right: 30px; z-index: 1000;"
             class="bg-white p-2 px-3 rounded-pill shadow-sm">
@@ -280,33 +280,28 @@
                 <div class="container">
                     <div class="text-center mb-5">
                         <h3 class="fw-bold">Pilih Spot Favoritmu</h3>
-                        <p class="text-muted">Klik "Tempatin" untuk amankan kursimu.</p>
+                        <p class="text-muted">Pilih meja lalu isi tanggal reservasi di modal.</p>
                     </div>
+                    <p class="text-muted small mb-4">Reservasi minimal 2 hari dari sekarang.</p>
                     <div class="row">
                         <% tables.forEach((table)=> { %>
                             <div class="col-md-4 col-lg-3 mb-4">
                                 <div class="card h-100 shadow-sm card-meja">
                                     <div class="card-body p-4 text-center">
                                         <% if (table.status==='occupied' ) { %>
-                                            <span
-                                                class="status-badge d-inline-block mb-3 bg-secondary text-white">Terisi</span>
-                                            <h5 class="fw-bold mb-2">Meja <%= table.table_number %>
-                                            </h5>
+                                            <span class="status-badge d-inline-block mb-3 bg-secondary text-white">Terisi</span>
+                                            <h5 class="fw-bold mb-2">Meja <%= table.table_number %></h5>
                                             <button disabled class="btn btn-secondary w-100 py-2">Terisi</button>
-                                            <% } else { %>
-                                                <span class="status-badge d-inline-block mb-3">Tersedia</span>
-                                                <h5 class="fw-bold mb-2">Meja <%= table.table_number %>
-                                                </h5>
-                                                <p class="small mb-4 text-muted">Kapasitas <%= table.capacity %> Kursi
-                                                </p>
-                                                <button
-                                                    onclick="openBookingModal('<%= table.id %>', '<%= table.table_number %>')"
-                                                    class="btn btn-booking w-100 py-2">Tempatin</button>
-                                                <% } %>
+                                        <% } else { %>
+                                            <span class="status-badge d-inline-block mb-3">Tersedia</span>
+                                            <h5 class="fw-bold mb-2">Meja <%= table.table_number %></h5>
+                                            <p class="small mb-4 text-muted">Kapasitas <%= table.capacity %> Kursi</p>
+                                            <button onclick="openBookingModal('<%= table.id %>', '<%= table.table_number %>')" class="btn btn-booking w-100 py-2">Tempatin</button>
+                                        <% } %>
                                     </div>
                                 </div>
                             </div>
-                            <% }) %>
+                        <% }) %>
                     </div>
                 </div>
             </div>
@@ -354,51 +349,32 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            <% if (messages.success) { %>
-                                <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 small shadow-sm mb-3"
-                                    role="alert">
-                                    <i class="bi bi-check-circle-fill me-2"></i>
-                                    <%= messages.success %>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                            aria-label="Close"></button>
+                            <div id="bookingAlert"></div>
+                            <form id="reservationForm">
+                                <input type="hidden" id="tableId">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Nama Lengkap</label>
+                                    <input type="text" class="form-control" id="resName"
+                                        value="<%= user ? user.username : '' %>" required>
                                 </div>
-                                <% } %>
-
-                                    <% if (messages.error) { %>
-                                        <div class="alert alert-danger alert-dismissible fade show rounded-4 border-0 small shadow-sm mb-3"
-                                            role="alert">
-                                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                            <%= messages.error %>
-                                                <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                                    aria-label="Close"></button>
-                                        </div>
-                                        <% } %>
-                                            <form id="reservationForm">
-                                                <input type="hidden" id="tableId">
-                                                <div class="mb-3">
-                                                    <label class="form-label small fw-bold">Nama Lengkap</label>
-                                                    <input type="text" class="form-control" id="resName"
-                                                        value="<%= user ? user.username : '' %>" required>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label small fw-bold">No. Telepon
-                                                        (WhatsApp)</label>
-                                                    <input type="tel" class="form-control" id="resPhone"
-                                                        placeholder="0812..." required>
-                                                </div>
-                                                <div class="row">
-                                                    <div class="col-6 mb-3">
-                                                        <label class="form-label small fw-bold">Tanggal</label>
-                                                        <input type="date" class="form-control" id="resDate" required>
-                                                    </div>
-                                                    <div class="col-6 mb-3">
-                                                        <label class="form-label small fw-bold">Jam</label>
-                                                        <input type="time" class="form-control" id="resTime" required>
-                                                    </div>
-                                                </div>
-                                                <button type="submit" class="btn-main w-100 mt-3">Simpan
-                                                    Reservasi</button>
-                                            </form>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">No. Telepon (WhatsApp)</label>
+                                    <input type="tel" class="form-control" id="resPhone"
+                                        placeholder="0812..." required>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label small fw-bold">Tanggal</label>
+                                        <input type="date" class="form-control" id="resDate" required>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label small fw-bold">Jam</label>
+                                        <input type="time" class="form-control" id="resTime" required>
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block mb-3">Pilih tanggal dan jam sesuai kebutuhan.</small>
+                                <button type="submit" class="btn-main w-100 mt-3">Simpan Reservasi</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -413,6 +389,20 @@
                     area.style.display = 'block';
                     window.scrollTo({ top: area.offsetTop, behavior: 'smooth' });
                 }
+
+                function getMinReservationDate() {
+                    const minDate = new Date();
+                    minDate.setDate(minDate.getDate() + 2);
+                    return minDate.toISOString().split('T')[0];
+                }
+
+                function initReservationFilters() {
+                    const resDate = document.getElementById('resDate');
+                    if (resDate) {
+                        resDate.min = getMinReservationDate();
+                    }
+                }
+
 
                 // 2. Fungsi Toggle Login & Register di Modal
                 function toggleAuth() {
@@ -433,6 +423,17 @@
 
                 // 3. Fungsi Buka Modal Reservasi Meja
                 function openBookingModal(id, num) {
+                    const isLoggedIn = document.body.dataset.user === 'true';
+                    if (!isLoggedIn) {
+                        Swal.fire({
+                            title: 'Silakan Login',
+                            text: 'Anda harus login terlebih dahulu untuk booking meja.',
+                            icon: 'warning',
+                            confirmButtonColor: '#1A237E'
+                        });
+                        return;
+                    }
+
                     document.getElementById('tableId').value = id;
                     document.getElementById('modalTableNum').innerText = num;
                     new bootstrap.Modal(document.getElementById('bookingModal')).show();
@@ -440,6 +441,8 @@
 
                 // 4. Logic Saat Halaman Dimuat (Auto-Open Modal Login & Notif Registrasi)
                 window.addEventListener('DOMContentLoaded', (event) => {
+                    initReservationFilters();
+
                     const urlParams = new URLSearchParams(window.location.search);
 
                     if (urlParams.get('auth') === 'login') {
@@ -484,19 +487,21 @@
                         body: JSON.stringify(data)
                     });
 
+                    const errorMsg = await res.text();
+
                     if (res.ok) {
                         Swal.fire({
                             title: 'Mantap!',
-                            text: 'Meja lo udah berhasil diamankan.',
+                            text: 'Meja udah berhasil diamankan.',
                             icon: 'success',
                             confirmButtonColor: '#1A237E'
                         }).then(() => {
-                            location.reload(); // Refresh halaman setelah user klik OK
+                            location.reload();
                         });
                     } else {
                         Swal.fire({
                             title: 'Waduh!',
-                            text: 'Gagal booking meja, coba lagi ya.',
+                            text: errorMsg || 'Gagal booking meja, coba lagi ya.',
                             icon: 'error',
                             confirmButtonColor: '#1A237E'
                         });

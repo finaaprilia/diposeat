@@ -102,39 +102,10 @@
             font-size: 2.5rem;
             font-weight: 800;
             color: white;
-            cursor: pointer;
+            cursor: default;
             position: relative;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             border: 5px solid white;
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
-        }
-
-        .avatar-main:hover {
-            transform: rotate(5deg) scale(1.05);
-        }
-
-        .avatar-main img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            display: none;
-        }
-
-        .cam-badge {
-            position: absolute;
-            bottom: 2px;
-            right: 2px;
-            background: white;
-            color: var(--text-dark);
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         /* Inputs */
@@ -254,25 +225,29 @@
                 <i class="bi bi-person-circle me-2"></i> DATA PERSONAL ADMIN
             </div>
 
+            <% if (messages.success && messages.success.length) { %>
+                <div class="alert alert-success mb-4"><%= messages.success[0] %></div>
+            <% } %>
+            <% if (messages.error && messages.error.length) { %>
+                <div class="alert alert-danger mb-4"><%= messages.error[0] %></div>
+            <% } %>
+
             <form action="/admin/update-settings" method="POST">
                 <div class="avatar-wrapper">
-                    <div class="avatar-main" onclick="document.getElementById('profileInput').click()">
+                    <div class="avatar-main">
                         <span id="txtInitial">
                             <%= (admin && admin.username) ? admin.username.charAt(0).toUpperCase() : 'A' %>
                         </span>
-                        <img id="imgView" src="">
-                        <div class="cam-badge"><i class="bi bi-camera-fill"></i></div>
                     </div>
-                    <input type="file" id="profileInput" hidden accept="image/*" onchange="previewImg(event)">
                 </div>
 
                 <div class="row">
                     <div class="col-md-12">
                         <div class="input-group-custom">
-                            <label class="label-modern">Nama Admin</label>
-                            <input type="text" name="name" class="form-control-custom"
+                            <label class="label-modern">Username</label>
+                            <input type="text" name="username" class="form-control-custom"
                                 value="<%= admin && admin.username ? admin.username : '' %>"
-                                placeholder="Masukkan nama Anda">
+                                placeholder="Masukkan username baru">
                         </div>
                     </div>
 
@@ -324,21 +299,6 @@
     </div>
 
     <script>
-        function previewImg(event) {
-            const reader = new FileReader();
-            const imgView = document.getElementById('imgView');
-            const txtInitial = document.getElementById('txtInitial');
-
-            reader.onload = function () {
-                if (reader.readyState === 2) {
-                    imgView.src = reader.result;
-                    imgView.style.display = "block";
-                    txtInitial.style.display = "none";
-                }
-            }
-            reader.readAsDataURL(event.target.files[0]);
-        }
-
         function viewPass() {
             const passField = document.getElementById('passField');
             passField.type = passField.type === 'password' ? 'text' : 'password';

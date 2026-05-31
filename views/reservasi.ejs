@@ -133,9 +133,9 @@
                                                 </p>
                                             </div>
                                             <div class="col-sm-6">
-                                                <p class="info-label">Waktu Kedatangan</p>
-                                                <p class="info-value text-uppercase">
-                                                    <%= res.res_time %>
+                                                <p class="info-label">Waktu Reservasi</p>
+                                                <p class="info-value">
+                                                    <%= res.res_time || '-' %>
                                                 </p>
                                             </div>
                                             <div class="col-12">
@@ -161,7 +161,7 @@
                             <div>
                                 <h6 class="fw-bold mb-1" style="color: var(--soft-indigo);">Informasi Pembatalan</h6>
                                 <p class="small text-muted mb-2">
-                                    Pembatalan booking hanya dapat dilakukan melalui admin.</p>
+                                    Konfirmasi reservasi dan pembatalan booking hanya dapat dilakukan melalui admin.</p>
                                 <p class="mb-0 small fw-bold">
                                     Hubungi Staff:
                                     <a href="https://wa.me/6281234567890" target="_blank"

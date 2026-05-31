@@ -1,5 +1,27 @@
 const express = require('express');
 const pool = require('./db');
+
+const ensureReservationTable = async () => {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS reservations (
+                id SERIAL PRIMARY KEY,
+                table_id INTEGER REFERENCES tables(id) ON DELETE CASCADE,
+                reserved_by TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                res_date DATE NOT NULL,
+                start_time TIME NOT NULL,
+                end_time TIME NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+    } catch (err) {
+        console.error("Gagal inisialisasi tabel reservations:", err.message);
+    }
+};
+
+ensureReservationTable();
+
 const session = require('express-session');
 const flash = require('express-flash');
 const cookieParser = require('cookie-parser');
@@ -31,14 +53,18 @@ app.get('/', async (req, res) => {
         const result = await pool.query('SELECT * FROM tables ORDER BY table_number ASC');
         res.render('index', {
             tables: result.rows,
-            // Mengirim data session user atau admin agar navbar bisa adaptif
-            user: req.session.user || req.session.admin || null
+            user: req.session.user || req.session.admin || null,
+            messages: {
+                success: req.flash('success'),
+                error: req.flash('error')
+            }
         });
     } catch (err) {
         console.error(err);
         res.status(500).send("Error koneksi database");
     }
 });
+
 
 app.get('/login', (req, res) => {
     res.render('login');
@@ -79,8 +105,36 @@ app.post('/login', async (req, res) => {
 // ROUTE KHUSUS USER UNTUK BOOKING
 app.post('/user/book-table/:id', async (req, res) => {
     try {
+        if (!req.session.user) {
+            return res.status(401).send("Silakan login terlebih dahulu.");
+        }
+
         const { id } = req.params;
         const { reserved_by, phone, reservation_date, reservation_time } = req.body;
+
+        if (!reserved_by || !phone || !reservation_date || !reservation_time) {
+            return res.status(400).send("Semua data reservasi wajib diisi.");
+        }
+
+        const selectedDate = new Date(reservation_date);
+        selectedDate.setHours(0, 0, 0, 0);
+
+        const minDate = new Date();
+        minDate.setDate(minDate.getDate() + 2);
+        minDate.setHours(0, 0, 0, 0);
+
+        if (selectedDate < minDate) {
+            return res.status(400).send("Reservasi harus dibuat minimal 2 hari sebelum tanggal yang dipilih.");
+        }
+
+        const tableResult = await pool.query('SELECT status FROM tables WHERE id = $1', [id]);
+        if (tableResult.rows.length === 0) {
+            return res.status(404).send("Meja tidak ditemukan.");
+        }
+
+        if (tableResult.rows[0].status !== 'available') {
+            return res.status(409).send("Meja sudah dipesan oleh orang lain.");
+        }
 
         await pool.query(
             `UPDATE tables 
@@ -88,6 +142,7 @@ app.post('/user/book-table/:id', async (req, res) => {
              WHERE id = $5`,
             [reserved_by, phone, reservation_date, reservation_time, id]
         );
+
         res.sendStatus(200);
     } catch (err) {
         console.error("USER BOOKING ERROR:", err.message);
@@ -121,12 +176,14 @@ app.get('/logout', (req, res) => {
 app.get('/admin', isAdmin, async (req, res) => {
     try {
         const tablesResult = await pool.query('SELECT * FROM tables ORDER BY table_number ASC');
-        // Query ini sekarang mengambil semua meja yang statusnya 'occupied' 
-        // baik dari Booking User maupun Walk-in Admin
         const reservationsResult = await pool.query(`
-            SELECT res_date as date, res_time as time, table_number, reserved_by as customer_name, phone
-            FROM tables 
-            WHERE status = 'occupied' 
+            SELECT res_date as date,
+                   res_time as time,
+                   table_number,
+                   reserved_by as customer_name,
+                   phone
+            FROM tables
+            WHERE status = 'occupied'
             ORDER BY res_date ASC, res_time ASC
         `);
 
@@ -205,14 +262,10 @@ app.post('/admin/unbook-table/:id', isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
 
-        // 1. Kembalikan status ke available DAN kosongkan data nama & nomor telepon
         await pool.query(
-            "UPDATE tables SET status = 'available', reserved_by = NULL, phone = NULL WHERE id = $1",
+            "UPDATE tables SET status = 'available', reserved_by = NULL, phone = NULL, res_date = NULL, res_time = NULL WHERE id = $1",
             [id]
         );
-
-        // 2. Hapus data reservasi terkait untuk membersihkan histori jadwal
-        await pool.query("DELETE FROM reservations WHERE table_id = $1", [id]);
 
         res.sendStatus(200);
     } catch (err) {
@@ -221,44 +274,50 @@ app.post('/admin/unbook-table/:id', isAdmin, async (req, res) => {
     }
 });
 
-// ROUTE SETTINGS YANG DIPERBAIKI
+// ROUTE SETTINGS
 app.get('/admin/settings', isAdmin, (req, res) => {
     res.render('settings', {
         title: 'Settings',
-        // Kirim req.user sebagai admin. Jika req.user undefined, kirim objek kosong
-        admin: req.user || {}
+        admin: req.session.admin || {},
+        messages: {
+            success: req.flash('success'),
+            error: req.flash('error')
+        }
     });
 });
 
 app.post('/admin/update-settings', isAdmin, async (req, res) => {
-    const { name, password } = req.body;
+    const username = req.body.username?.trim();
+    const password = req.body.password?.trim();
     const adminId = req.session.admin.id;
 
+    if (!username) {
+        req.flash('error', 'Username tidak boleh kosong.');
+        return res.redirect('/admin/settings');
+    }
+
     try {
-        if (password && password.trim() !== "") {
-            // KONDISI 1: Ganti Nama + Password (Password di-hash)
+        if (password) {
             const hashedPassword = await bcrypt.hash(password, 10);
             await pool.query(
                 'UPDATE users SET username = $1, password = $2 WHERE id = $3',
-                [name, hashedPassword, adminId]
+                [username, hashedPassword, adminId]
             );
         } else {
-            // KONDISI 2: Hanya Ganti Nama (PASTIKAN PAKE 'username', BUKAN 'name')
             await pool.query(
                 'UPDATE users SET username = $1 WHERE id = $2',
-                [name, adminId]
+                [username, adminId]
             );
         }
 
-        // UPDATE SESSION: Supaya nama di pojok kanan atas langsung berubah tanpa logout
-        req.session.admin.username = name;
+        req.session.admin.username = username;
 
         req.flash('success', 'Profil admin berhasil diperbarui!');
         res.redirect('/admin/settings');
-
     } catch (err) {
-        console.error("Error Update Admin:", err.message);
-        res.status(500).send("Gagal memperbarui profil admin.");
+        console.error('Error Update Admin:', err.message);
+        req.flash('error', 'Gagal memperbarui profil admin.');
+        res.redirect('/admin/settings');
     }
 });
 
@@ -310,12 +369,13 @@ app.get('/my-reservations', async (req, res) => {
     }
 
     try {
-        const result = await pool.query(
-            "SELECT * FROM tables WHERE reserved_by = $1 AND status = 'occupied' ORDER BY res_date ASC",
-            [req.session.user.username]
-        );
+        const result = await pool.query(`
+            SELECT res_date, res_time, table_number, reserved_by, phone
+            FROM tables
+            WHERE reserved_by = $1
+            ORDER BY res_date ASC, res_time ASC
+        `, [req.session.user.username]);
 
-        // NAMA FILE HARUS SESUAI (Tanpa .ejs)
         res.render('reservasi', {
             user: req.session.user,
             reservations: result.rows
@@ -326,6 +386,10 @@ app.get('/my-reservations', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`🚀 DIPOSEAT RUNNING ON http://localhost:${port}`);
-});
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`🚀 DIPOSEAT RUNNING ON http://localhost:${port}`);
+    });
+}
+
+module.exports = app;
